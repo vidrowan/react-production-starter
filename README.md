@@ -65,3 +65,49 @@ npm start
 ```
 
 More docs soon. PRs welcome!
+
+## Docker Tips
+ - [Hub.Docker repo](https://hub.docker.com/r/jaredpalmer/react-production-starter/)
+
+### Mac & Kitematic
+ - In order to view the app from your Mac:
+   - It's helpful to pass port 5000 like so 
+```docker run -d -t -p 80:80 -p 5000:5000 -v `pwd`/MyApp:/stuff jaredpalmer/react-production-starter```
+   - Additionally, It's important to update the /etc/hosts file to be able to view the app from your mac.
+     - I capture the docker id and preferred URL in vars and prompt the user to update the file. 
+     - Here's the one-liner I use:
+     - ```docker_id=''; docker_ip=''; docker_container=''; default='docker-app.dev'; read -t 10 -p 'What would you like your URL to be? ('$default') ' docker_url; docker_url=${docker_url:-$default}; echo "OK. We'll use: $docker_url"; docker_id=$(docker run -d -t -p 80:80 -p 5000:5000 -v `pwd`/MyApp:/stuff jaredpalmer/react-production-starter); echo 'Docker ID: '$docker_id; docker_ip=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' $docker_id); docker ps; echo 'Docker IP: '$docker_ip; docker_container=$(echo $docker_id | cut -c1-12); echo 'Docker Container: '$docker_container; echo "${docker_ip} ${docker_url}" | pbcopy; while [ -z $prompt ]; do read -t 8 -n 1 -p $'A host entry: "${docker_ip} ${docker_url}" has been copied to your clipboard. Would you like to edit your /etc/hosts file now: sudo vim /etc/hosts (Y/n)?' choice; case "$choice" in y|Y ) echo; echo 'OK.'; sudo vim /etc/hosts; break;; n|N ) echo; echo 'OK. You may need to do that later if you have issues viewing your docker app in a browser'; break;; esac; done; prompt=; echo 'To stop; run: docker stop '$docker_container; echo 'To remove the host entry find: "${docker_ip} ${docker_url}" in /etc/hosts delete the line.'; echo 'sudo vim /etc/hosts';```
+     - Here it is on multi-lines:
+```bash
+docker_id=''; 
+docker_ip=''; 
+docker_container=''; 
+default='docker-app.dev'; 
+read -t 10 -p 'What would you like your URL to be? ('$default') ' docker_url; 
+docker_url=${docker_url:-$default};
+echo "OK. We'll use: $docker_url";
+docker_id=$(docker run -d -t -p 80:80 -p 5000:5000 -v `pwd`/MyApp:/stuff jaredpalmer/react-production-starter);
+echo 'Docker ID: '$docker_id;
+docker_ip=$(docker inspect --format '{{ .NetworkSettings.IPAddress }}' $docker_id);
+docker ps;
+echo 'Docker IP: '$docker_ip;
+docker_container=$(echo $docker_id | cut -c1-12);
+echo 'Docker Container: '$docker_container;
+echo "${docker_ip} ${docker_url}" | pbcopy;
+while [ -z $prompt ];
+do read -t 8 -n 1 -p $'A host entry: "${docker_ip} ${docker_url}" has been copied to your clipboard. Would you like to edit your /etc/hosts file now: sudo vim /etc/hosts (Y/n)?' choice;
+  case "$choice" in y|Y ) echo;
+    echo 'OK.';
+    sudo vim /etc/hosts;
+  break;;
+  n|N ) echo;
+    echo 'OK. You may need to do that later if you have issues viewing your docker app in a browser';
+  break;;
+  esac;
+done;
+prompt=;
+echo 'To stop;
+run: docker stop '$docker_container;
+echo 'To remove the host entry find: "${docker_ip} ${docker_url}" in /etc/hosts delete the line.';
+echo 'sudo vim /etc/hosts';
+```
